@@ -1,6 +1,5 @@
 package com.mycompany.sistemadeautenticacion;
 
-
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
@@ -23,24 +22,24 @@ public class VentanaAdministrador extends JFrame {
 
     private void initUI() {
         JPanel p = new JPanel(new BorderLayout());
-        p.setBackground(new Color(20,20,20));
+        p.setBackground(new Color(0, 204, 204)); // solo cambio: fondo aqua
         JLabel header = new JLabel("Panel Administrador - " + admin.getNombre());
         header.setForeground(Color.WHITE);
         header.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
         p.add(header, BorderLayout.NORTH);
 
         JList<String> lista = new JList<>(usuariosModel);
-        lista.setBackground(new Color(28,28,28));
+        lista.setBackground(new Color(28,28,28)); // mantengo el fondo de lista que ya tenías
         lista.setForeground(Color.WHITE);
         p.add(new JScrollPane(lista), BorderLayout.CENTER);
 
         JPanel botones = new JPanel();
-        botones.setBackground(new Color(20,20,20));
+        botones.setBackground(new Color(0, 204, 204)); // panel botones con mismo fondo aqua
         JButton btnCrearCuenta = new JButton("Crear cuenta para cliente");
         JButton btnRefrescar = new JButton("Refrescar");
         JButton btnCerrar = new JButton("Cerrar sesión");
         for (JButton b : new JButton[]{btnCrearCuenta, btnRefrescar, btnCerrar}) {
-            b.setBackground(new Color(40,40,40));
+            b.setBackground(new Color(255, 102, 102)); // solo cambio: boton rojo suave
             b.setForeground(Color.WHITE);
             b.setFocusPainted(false);
             botones.add(b);
@@ -71,7 +70,7 @@ public class VentanaAdministrador extends JFrame {
 
     private void cargarUsuarios() {
         usuariosModel.clear();
-        List<Usuario> lista = sistema.listarUsuarios();
+        java.util.List<Usuario> lista = sistema.listarUsuarios();
         for (Usuario u : lista) {
             usuariosModel.addElement(u.toString());
         }

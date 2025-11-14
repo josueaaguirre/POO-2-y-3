@@ -1,1 +1,2 @@
+josue1|josue1|1234|ADMIN
 josue|josue|1234|CLIENTE
