@@ -13,7 +13,9 @@ public class VentanaCliente extends JFrame {
     public VentanaCliente(SistemaAutenticacion sistema, Cliente cliente) {
         this.sistema = sistema;
         this.cliente = cliente;
-        setTitle("Nequi - Cliente: " + cliente.getNombre());
+        setTitle("Banco Tu Amigo - Cliente: " + cliente.getNombre());
+        ImageIcon icono = new ImageIcon(getClass().getResource("/imagenes/logo.png"));
+        setIconImage(icono.getImage());
         setSize(600, 420);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);

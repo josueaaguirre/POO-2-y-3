@@ -12,7 +12,9 @@ public class VentanaAdministrador extends JFrame {
     public VentanaAdministrador(SistemaAutenticacion sistema, Administrador admin) {
         this.sistema = sistema;
         this.admin = admin;
-        setTitle("Nequi - Administrador: " + admin.getNombre());
+        setTitle("Banco Tu Amigo - Administrador: " + admin.getNombre());
+        ImageIcon icono = new ImageIcon(getClass().getResource("/imagenes/logo.png"));
+        setIconImage(icono.getImage());
         setSize(600, 420);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);

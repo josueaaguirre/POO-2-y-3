@@ -1,6 +1,5 @@
 package com.mycompany.sistemadeautenticacion;
 
-import com.mycompany.sistemadeautenticacion.SistemaAutenticacion;
 import javax.swing.*;
 import java.awt.*;
 
@@ -9,11 +8,16 @@ public class VentanaLogin extends JFrame {
 
     public VentanaLogin(SistemaAutenticacion sistema) {
         this.sistema = sistema;
-        setTitle("Nequi - Iniciar / Registrar");
+        setTitle("Banco Tu Amigo - Iniciar / Registrar");
+
+        ImageIcon icono = new ImageIcon(getClass().getResource("/logo.png"));
+        setIconImage(icono.getImage());
+
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(420, 300);
         setLocationRelativeTo(null);
         setResizable(false);
+
         initUI();
     }
 
@@ -54,42 +58,88 @@ public class VentanaLogin extends JFrame {
         b.setBorderPainted(false);
     }
 
+    // ============================================================
+    //                REGISTRO CON IMAGEN DINÁMICA
+    // ============================================================
     private void abrirRegistro() {
+
         JTextField nombreField = new JTextField();
         JTextField userField = new JTextField();
         JPasswordField passField = new JPasswordField();
+
         String[] roles = {"CLIENTE", "ADMIN"};
         JComboBox<String> roleBox = new JComboBox<>(roles);
 
-        Object[] inputs = {
-                "Nombre real:", nombreField,
-                "Username:", userField,
-                "Contraseña:", passField,
-                "Rol:", roleBox
+        // ---------- PANEL IZQUIERDO CON IMAGEN ----------
+        JLabel lblImg = new JLabel();
+        lblImg.setPreferredSize(new Dimension(80, 80));
+
+        // función para cargar imagen pequeña
+        Runnable cargarImagen = () -> {
+            try {
+                String rol = (String) roleBox.getSelectedItem();
+                String archivo = rol.equals("CLIENTE") ? "/cliente.png" : "/admin.png";
+
+                ImageIcon icono = new ImageIcon(getClass().getResource(archivo));
+                Image esc = icono.getImage().getScaledInstance(70, 70, Image.SCALE_SMOOTH);
+                lblImg.setIcon(new ImageIcon(esc));
+            } catch (Exception ex) {
+                lblImg.setText("Sin imagen");
+            }
         };
 
-        int res = JOptionPane.showConfirmDialog(this, inputs,
-                "Registrar usuario", JOptionPane.OK_CANCEL_OPTION);
+        // cargar imagen inicial
+        cargarImagen.run();
+
+        // cambiar imagen cuando cambie el rol
+        roleBox.addActionListener(e -> cargarImagen.run());
+
+        // CONTENEDOR PRINCIPAL DEL FORM
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.add(lblImg, BorderLayout.WEST);
+
+        JPanel fields = new JPanel(new GridLayout(0, 1, 5, 5));
+        fields.add(new JLabel("Nombre real:"));     fields.add(nombreField);
+        fields.add(new JLabel("Username:"));        fields.add(userField);
+        fields.add(new JLabel("Contraseña:"));      fields.add(passField);
+        fields.add(new JLabel("Rol:"));             fields.add(roleBox);
+
+        panel.add(fields, BorderLayout.CENTER);
+
+        int res = JOptionPane.showConfirmDialog(
+                this,
+                panel,
+                "Registrar usuario",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
 
         if (res == JOptionPane.OK_OPTION) {
             String nombre = nombreField.getText();
             String user = userField.getText();
             String pass = new String(passField.getPassword());
             String role = (String) roleBox.getSelectedItem();
+
             boolean ok = sistema.registrarUsuario(nombre, user, pass, role);
+
             if (ok) {
                 JOptionPane.showMessageDialog(this, "Registrado con éxito. Iniciando sesión...");
                 Usuario u = sistema.autenticar(user, pass);
                 abrirVentanaPorRol(u);
                 dispose();
             } else {
-                JOptionPane.showMessageDialog(this,
+                JOptionPane.showMessageDialog(
+                        this,
                         "Error: usuario ya existe o datos inválidos.",
-                        "Error", JOptionPane.ERROR_MESSAGE);
+                        "Error", JOptionPane.ERROR_MESSAGE
+                );
             }
         }
     }
 
+    // ============================================================
+    //                     LOGIN NORMAL
+    // ============================================================
     private void abrirLogin() {
         JTextField userField = new JTextField();
         JPasswordField passField = new JPasswordField();
@@ -115,6 +165,9 @@ public class VentanaLogin extends JFrame {
         }
     }
 
+    // ============================================================
+    //                     ABRIR VENTANA SEGÚN ROL
+    // ============================================================
     private void abrirVentanaPorRol(Usuario u) {
         if (u == null) return;
 
