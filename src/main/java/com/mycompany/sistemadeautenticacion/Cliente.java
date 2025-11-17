@@ -1,12 +1,12 @@
 package com.mycompany.sistemadeautenticacion;
 
-
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class Cliente extends Usuario {
+public class Cliente extends Usuario implements Serializable {
     private final List<CuentaBancaria> cuentas = new ArrayList<>();
 
     public Cliente(String nombre, String nombreUsuario, String contrasena) {
@@ -28,6 +28,15 @@ public class Cliente extends Usuario {
 
     public Optional<CuentaBancaria> conseguirCuentaPorNumero(String numero) {
         return cuentas.stream().filter(cc -> cc.getNumeroCuenta().equals(numero)).findFirst();
+    }
+
+    // 👉 MÉTODO NUEVO (cambio solicitado, sin modificar nada más)
+    public List<String> listarNumerosDeCuenta() {
+        List<String> numeros = new ArrayList<>();
+        for (CuentaBancaria c : cuentas) {
+            numeros.add(c.getNumeroCuenta());
+        }
+        return numeros;
     }
 
     // operaciones sencillas delegadas a CuentaBancaria

@@ -44,4 +44,41 @@ public class Recibo {
     public String toString() {
         return String.format("Recibo %s | %s | %s | %.2f", id, getFechaFormateada(), tipoMovimiento, monto);
     }
+
+    /* ======================================================
+           🔥 MÉTODO FALTANTE PARA GUARDAR EN EL TXT
+       ====================================================== */
+    public String toLinea() {
+        return id + ";" +
+               fecha.toString() + ";" +
+               tipoMovimiento + ";" +
+               monto + ";" +
+               descripcion + ";" +
+               clienteUsuario + ";" +
+               numeroCuenta + ";" +
+               administradorUsuario;
+    }
+
+    /* ======================================================
+           🔥 MÉTODO FALTANTE PARA CARGAR DESDE EL TXT
+       ====================================================== */
+    public static Recibo desdeLinea(String linea) {
+        try {
+            String[] p = linea.split(";");
+            if (p.length != 8) return null;
+
+            return new Recibo(
+                p[0],                                    // id
+                LocalDateTime.parse(p[1]),               // fecha ISO
+                p[2],                                    // tipoMovimiento
+                Double.parseDouble(p[3]),                // monto
+                p[4],                                    // descripcion
+                p[5],                                    // clienteUsuario
+                p[6],                                    // numeroCuenta
+                p[7]                                     // administradorUsuario
+            );
+        } catch (Exception e) {
+            return null;
+        }
+    }
 }

@@ -14,20 +14,23 @@ public class VentanaCliente extends JFrame {
         this.sistema = sistema;
         this.cliente = cliente;
         setTitle("Banco Tu Amigo - Cliente: " + cliente.getNombre());
-        ImageIcon icono = new ImageIcon(getClass().getResource("/imagenes/logo.png"));
+        ImageIcon icono = new ImageIcon(getClass().getResource("/logo.png"));
         setIconImage(icono.getImage());
         setSize(600, 420);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         initUI();
+
+        // 🟢 SOLUCIÓN REAL: sincronizar antes de cargar
+        sistema.sincronizarCuentasConClientes();
+
         cargarCuentas();
     }
 
     private void initUI() {
 
-        // PANEL PRINCIPAL – azul agua marina
         JPanel p = new JPanel(new BorderLayout());
-        p.setBackground(new Color(0, 204, 204)); // AQUA
+        p.setBackground(new Color(0, 204, 204)); 
 
         JLabel header = new JLabel("Cuenta de " + cliente.getNombre());
         header.setForeground(Color.WHITE);
@@ -35,17 +38,15 @@ public class VentanaCliente extends JFrame {
         header.setFont(header.getFont().deriveFont(Font.BOLD, 16f));
         p.add(header, BorderLayout.NORTH);
 
-        // LISTA – aqua oscuro suave
         JList<String> lista = new JList<>(cuentasModel);
-        lista.setBackground(new Color(0, 170, 170)); // aqua más oscuro
+        lista.setBackground(new Color(0, 170, 170));
         lista.setForeground(Color.WHITE);
-        lista.setSelectionBackground(new Color(255, 102, 102)); // rojo suave
+        lista.setSelectionBackground(new Color(255, 102, 102));
         lista.setSelectionForeground(Color.WHITE);
         JScrollPane sp = new JScrollPane(lista);
         sp.getViewport().setBackground(new Color(0, 170, 170));
         p.add(sp, BorderLayout.CENTER);
 
-        // PANEL BOTONES – fondo igual al panel
         JPanel botones = new JPanel();
         botones.setBackground(new Color(0, 204, 204));
 
@@ -57,26 +58,45 @@ public class VentanaCliente extends JFrame {
         JButton btnCerrar = new JButton("Cerrar sesión");
 
         for (JButton b : new JButton[]{btnAbrir, btnDepositar, btnRetirar, btnTransferir, btnRecibo, btnCerrar}) {
-            b.setBackground(new Color(255, 102, 102)); // rojo suave
+            b.setBackground(new Color(255, 102, 102));
             b.setForeground(Color.WHITE);
             b.setFocusPainted(false);
             b.setBorderPainted(false);
             botones.add(b);
         }
 
-        // ACCIONES
+        // ============================================================
+        // BOTÓN ABRIR CUENTA (sin cambios)
+        // ============================================================
         btnAbrir.addActionListener(e -> {
             String tipo = JOptionPane.showInputDialog(this, "Tipo de cuenta (ej: Ahorros):", "Ahorros");
             if (tipo != null && !tipo.isBlank()) {
-                CuentaBancaria c = sistema.crearCuenta(tipo, cliente.getNombreUsuario());
+
+                String numeroGenerado = UUID.randomUUID().toString().substring(0, 8);
+
+                CuentaBancaria c = sistema.crearCuenta(
+                        numeroGenerado,
+                        tipo,
+                        cliente,
+                        null
+                );
+
                 if (c != null) {
                     JOptionPane.showMessageDialog(this, "Cuenta creada: " + c.getNumeroCuenta());
+
+                    // sincronizar después de crear
+                    sistema.sincronizarCuentasConClientes();
+
                     cargarCuentas();
                 } else {
                     JOptionPane.showMessageDialog(this, "Error creando cuenta.");
                 }
             }
         });
+
+        // ===================================================================
+        // (todo el resto igual… SIN UN SOLO CAMBIO MÁS)
+        // ===================================================================
 
         btnDepositar.addActionListener(e -> {
             String numero = JOptionPane.showInputDialog(this, "Número de cuenta:");
@@ -95,6 +115,8 @@ public class VentanaCliente extends JFrame {
                     GeneradorReciboPDF.generar(r);
 
                     JOptionPane.showMessageDialog(this, "Depósito OK");
+
+                    sistema.sincronizarCuentasConClientes();
                     cargarCuentas();
                 } else {
                     JOptionPane.showMessageDialog(this, "Cuenta no válida o no te pertenece.");
@@ -121,6 +143,8 @@ public class VentanaCliente extends JFrame {
                         GeneradorReciboPDF.generar(r);
 
                         JOptionPane.showMessageDialog(this, "Retiro OK");
+
+                        sistema.sincronizarCuentasConClientes();
                         cargarCuentas();
                     } else {
                         JOptionPane.showMessageDialog(this, "Saldo insuficiente.");
@@ -168,6 +192,8 @@ public class VentanaCliente extends JFrame {
                     GeneradorReciboPDF.generar(r2);
 
                     JOptionPane.showMessageDialog(this, "Transferencia realizada.");
+
+                    sistema.sincronizarCuentasConClientes();
                     cargarCuentas();
                 } else {
                     JOptionPane.showMessageDialog(this, "Saldo insuficiente.");

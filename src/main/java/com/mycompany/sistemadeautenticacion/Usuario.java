@@ -1,9 +1,11 @@
 package com.mycompany.sistemadeautenticacion;
 
-
 import java.io.Serializable;
 
 public class Usuario implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     private String nombre;          // nombre real
     private String nombreUsuario;   // username/login
     private String contrasena;

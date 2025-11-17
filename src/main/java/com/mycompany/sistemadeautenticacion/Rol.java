@@ -1,7 +1,11 @@
 package com.mycompany.sistemadeautenticacion;
 
+import java.io.Serializable;
 
-public class Rol {
+public class Rol implements Serializable {
+    
+    private static final long serialVersionUID = 1L;
+
     private String nombre;
     private String descripcion;
 
@@ -10,10 +14,17 @@ public class Rol {
         this.descripcion = descripcion;
     }
 
-    public Rol(String nombre) { this(nombre, ""); }
+    public Rol(String nombre) { 
+        this(nombre, ""); 
+    }
 
-    public String getNombre() { return nombre; }
-    public String getDescripcion() { return descripcion; }
+    public String getNombre() { 
+        return nombre; 
+    }
+
+    public String getDescripcion() { 
+        return descripcion; 
+    }
 
     @Override
     public String toString() {

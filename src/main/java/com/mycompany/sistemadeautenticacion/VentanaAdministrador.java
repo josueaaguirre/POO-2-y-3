@@ -13,7 +13,7 @@ public class VentanaAdministrador extends JFrame {
         this.sistema = sistema;
         this.admin = admin;
         setTitle("Banco Tu Amigo - Administrador: " + admin.getNombre());
-        ImageIcon icono = new ImageIcon(getClass().getResource("/imagenes/logo.png"));
+        ImageIcon icono = new ImageIcon(getClass().getResource("/logo.png"));
         setIconImage(icono.getImage());
         setSize(600, 420);
         setLocationRelativeTo(null);

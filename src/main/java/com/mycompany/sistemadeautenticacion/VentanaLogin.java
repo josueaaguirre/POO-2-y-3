@@ -4,183 +4,252 @@ import javax.swing.*;
 import java.awt.*;
 
 public class VentanaLogin extends JFrame {
+
     private final SistemaAutenticacion sistema;
 
     public VentanaLogin(SistemaAutenticacion sistema) {
         this.sistema = sistema;
-        setTitle("Banco Tu Amigo - Iniciar / Registrar");
+
+        setTitle("Banco Tu Amigo");
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setSize(450, 350);
+        setLocationRelativeTo(null);
+        setResizable(false);
 
         ImageIcon icono = new ImageIcon(getClass().getResource("/logo.png"));
         setIconImage(icono.getImage());
 
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(420, 300);
-        setLocationRelativeTo(null);
-        setResizable(false);
-
         initUI();
     }
 
+    /** ================================
+     *          INTERFAZ PRINCIPAL
+     * ================================ */
     private void initUI() {
 
-        // PANEL PRINCIPAL — azul agua marina
         JPanel p = new JPanel();
-        p.setBackground(new Color(0, 204, 204));  // AQUA MARINA
+        p.setBackground(new Color(0, 180, 200));
         p.setLayout(null);
 
-        JLabel lblTitle = new JLabel("Bienvenido - Registro / Ingreso");
-        lblTitle.setForeground(Color.WHITE);
-        lblTitle.setBounds(40, 10, 340, 30);
-        lblTitle.setFont(lblTitle.getFont().deriveFont(16f));
-        p.add(lblTitle);
+        JLabel titulo = new JLabel("Bienvenido a Banco Tu Amigo");
+        titulo.setForeground(Color.WHITE);
+        titulo.setFont(new Font("Arial", Font.BOLD, 20));
+        titulo.setBounds(70, 20, 320, 30);
+        p.add(titulo);
 
-        // BOTONES — rojo suave
-        JButton btnRegistro = new JButton("Registrar");
-        btnRegistro.setBounds(40, 60, 150, 30);
-        styleButtonRed(btnRegistro);
-        btnRegistro.addActionListener(e -> abrirRegistro());
+        JButton btnRegistro = crearBoton("Registrar", 60);
+        btnRegistro.addActionListener(e -> abrirVentanaRegistro());
         p.add(btnRegistro);
 
-        JButton btnLogin = new JButton("Iniciar Sesión");
-        btnLogin.setBounds(220, 60, 150, 30);
-        styleButtonRed(btnLogin);
-        btnLogin.addActionListener(e -> abrirLogin());
+        JButton btnLogin = crearBoton("Iniciar Sesión", 120);
+        btnLogin.addActionListener(e -> abrirVentanaLogin());
         p.add(btnLogin);
 
         add(p);
     }
 
-    // *** NUEVO estilo: botón rojo suave ***
-    private void styleButtonRed(JButton b) {
-        b.setBackground(new Color(255, 102, 102)); // rojo suave
+    /** Botón estilizado */
+    private JButton crearBoton(String texto, int y) {
+        JButton b = new JButton(texto);
+        b.setBounds(125, y, 200, 40);
+        b.setBackground(new Color(255, 90, 90));
         b.setForeground(Color.WHITE);
         b.setFocusPainted(false);
-        b.setBorderPainted(false);
+        b.setFont(new Font("Arial", Font.BOLD, 16));
+        b.setBorder(BorderFactory.createEmptyBorder());
+        return b;
     }
 
-    // ============================================================
-    //                REGISTRO CON IMAGEN DINÁMICA
-    // ============================================================
-    private void abrirRegistro() {
+    /** =====================================================
+     *         NUEVA VENTANA PROPIA DE REGISTRO
+     * ===================================================== */
+    private void abrirVentanaRegistro() {
 
-        JTextField nombreField = new JTextField();
-        JTextField userField = new JTextField();
-        JPasswordField passField = new JPasswordField();
+        JFrame r = new JFrame("Registrar Usuario");
+        r.setSize(460, 380);
+        r.setLocationRelativeTo(null);
+        r.setResizable(false);
+        r.setLayout(null);
 
-        String[] roles = {"CLIENTE", "ADMIN"};
-        JComboBox<String> roleBox = new JComboBox<>(roles);
+        JPanel panel = new JPanel(null);
+        panel.setBackground(new Color(240, 240, 240));
+        panel.setBounds(0, 0, 460, 380);
 
-        // ---------- PANEL IZQUIERDO CON IMAGEN ----------
-        JLabel lblImg = new JLabel();
-        lblImg.setPreferredSize(new Dimension(80, 80));
+        JLabel img = new JLabel();
+        img.setBounds(20, 20, 100, 100);
+        panel.add(img);
 
-        // función para cargar imagen pequeña
-        Runnable cargarImagen = () -> {
-            try {
-                String rol = (String) roleBox.getSelectedItem();
-                String archivo = rol.equals("CLIENTE") ? "/cliente.png" : "/admin.png";
+        JTextField nombre = crearCampo(150, 20);
+        JTextField user = crearCampo(150, 80);
+        JPasswordField pass = new JPasswordField();
+        pass.setBounds(150, 140, 250, 30);
 
-                ImageIcon icono = new ImageIcon(getClass().getResource(archivo));
-                Image esc = icono.getImage().getScaledInstance(70, 70, Image.SCALE_SMOOTH);
-                lblImg.setIcon(new ImageIcon(esc));
-            } catch (Exception ex) {
-                lblImg.setText("Sin imagen");
+        JComboBox<String> rol = new JComboBox<>(new String[]{"CLIENTE", "ADMIN"});
+        rol.setBounds(150, 200, 250, 30);
+
+        cargarImagenUsuario(rol, img);
+
+        rol.addActionListener(e -> cargarImagenUsuario(rol, img));
+
+        panel.add(label("Nombre real", 150, 0));
+        panel.add(nombre);
+
+        panel.add(label("Username", 150, 60));
+        panel.add(user);
+
+        panel.add(label("Contraseña", 150, 120));
+        panel.add(pass);
+
+        panel.add(label("Rol", 150, 180));
+        panel.add(rol);
+
+        JLabel mensaje = new JLabel("");
+        mensaje.setForeground(Color.RED);
+        mensaje.setBounds(150, 240, 250, 20);
+        panel.add(mensaje);
+
+        JButton btn = crearBotonFormulario("Registrar", 150, 270);
+        panel.add(btn);
+
+        btn.addActionListener(e -> {
+            String n = nombre.getText().trim();
+            String u = user.getText().trim();
+            String p = new String(pass.getPassword()).trim();
+            String ro = (String) rol.getSelectedItem();
+
+            if (n.isEmpty() || u.isEmpty() || p.isEmpty()) {
+                mensaje.setText("Todos los campos son obligatorios.");
+                return;
             }
-        };
 
-        // cargar imagen inicial
-        cargarImagen.run();
-
-        // cambiar imagen cuando cambie el rol
-        roleBox.addActionListener(e -> cargarImagen.run());
-
-        // CONTENEDOR PRINCIPAL DEL FORM
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.add(lblImg, BorderLayout.WEST);
-
-        JPanel fields = new JPanel(new GridLayout(0, 1, 5, 5));
-        fields.add(new JLabel("Nombre real:"));     fields.add(nombreField);
-        fields.add(new JLabel("Username:"));        fields.add(userField);
-        fields.add(new JLabel("Contraseña:"));      fields.add(passField);
-        fields.add(new JLabel("Rol:"));             fields.add(roleBox);
-
-        panel.add(fields, BorderLayout.CENTER);
-
-        int res = JOptionPane.showConfirmDialog(
-                this,
-                panel,
-                "Registrar usuario",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE
-        );
-
-        if (res == JOptionPane.OK_OPTION) {
-            String nombre = nombreField.getText();
-            String user = userField.getText();
-            String pass = new String(passField.getPassword());
-            String role = (String) roleBox.getSelectedItem();
-
-            boolean ok = sistema.registrarUsuario(nombre, user, pass, role);
-
-            if (ok) {
-                JOptionPane.showMessageDialog(this, "Registrado con éxito. Iniciando sesión...");
-                Usuario u = sistema.autenticar(user, pass);
-                abrirVentanaPorRol(u);
-                dispose();
-            } else {
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Error: usuario ya existe o datos inválidos.",
-                        "Error", JOptionPane.ERROR_MESSAGE
-                );
+            if (u.contains(" ")) {
+                mensaje.setText("El username no puede tener espacios.");
+                return;
             }
+
+            if (p.length() < 4) {
+                mensaje.setText("Contraseña demasiado corta.");
+                return;
+            }
+
+            boolean ok = sistema.registrarUsuario(n, u, p, ro);
+            if (!ok) {
+                mensaje.setText("Usuario ya existe.");
+                return;
+            }
+
+            Usuario obj = sistema.autenticar(u, p);
+            r.dispose();
+            abrirVentanaPorRol(obj);
+            dispose();
+        });
+
+        r.add(panel);
+        r.setVisible(true);
+    }
+
+    /** =====================================================
+     *         NUEVA VENTANA PROPIA DE LOGIN
+     * ===================================================== */
+    private void abrirVentanaLogin() {
+
+        JFrame r = new JFrame("Iniciar Sesión");
+        r.setSize(400, 280);
+        r.setLocationRelativeTo(null);
+        r.setResizable(false);
+        r.setLayout(null);
+
+        JPanel p = new JPanel(null);
+        p.setBackground(new Color(245, 245, 245));
+        p.setBounds(0, 0, 400, 280);
+
+        JTextField user = crearCampo(100, 40);
+        JPasswordField pass = new JPasswordField();
+        pass.setBounds(100, 110, 200, 30);
+
+        JLabel mensaje = new JLabel("");
+        mensaje.setForeground(Color.RED);
+        mensaje.setBounds(100, 150, 200, 20);
+
+        p.add(label("Usuario", 100, 20));
+        p.add(user);
+
+        p.add(label("Contraseña", 100, 90));
+        p.add(pass);
+
+        JButton btn = crearBotonFormulario("Entrar", 100, 180);
+        p.add(btn);
+
+        btn.addActionListener(e -> {
+            String u = user.getText().trim();
+            String pa = new String(pass.getPassword());
+
+            Usuario obj = sistema.autenticar(u, pa);
+            if (obj == null) {
+                mensaje.setText("Usuario o contraseña incorrectos.");
+                return;
+            }
+
+            r.dispose();
+            abrirVentanaPorRol(obj);
+            dispose();
+        });
+
+        r.add(p);
+        r.setVisible(true);
+    }
+
+    /** Etiquetas estándar */
+    private JLabel label(String t, int x, int y) {
+        JLabel l = new JLabel(t);
+        l.setBounds(x, y, 200, 20);
+        return l;
+    }
+
+    /** Campos estándar */
+    private JTextField crearCampo(int x, int y) {
+        JTextField t = new JTextField();
+        t.setBounds(x, y, 250, 30);
+        return t;
+    }
+
+    /** Botones del formulario */
+    private JButton crearBotonFormulario(String txt, int x, int y) {
+        JButton b = new JButton(txt);
+        b.setBounds(x, y, 200, 35);
+        b.setBackground(new Color(255, 100, 100));
+        b.setForeground(Color.WHITE);
+        b.setBorder(BorderFactory.createEmptyBorder());
+        b.setFocusPainted(false);
+        b.setFont(new Font("Arial", Font.BOLD, 15));
+        return b;
+    }
+
+    /** Cambia la imagen según rol */
+    private void cargarImagenUsuario(JComboBox<String> rol, JLabel img) {
+        try {
+            String archivo = rol.getSelectedItem().equals("CLIENTE")
+                    ? "/cliente.png"
+                    : "/admin.png";
+
+            ImageIcon icono = new ImageIcon(getClass().getResource(archivo));
+            Image esc = icono.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+            img.setIcon(new ImageIcon(esc));
+        } catch (Exception e) {
+            img.setText("Sin imagen");
         }
     }
 
-    // ============================================================
-    //                     LOGIN NORMAL
-    // ============================================================
-    private void abrirLogin() {
-        JTextField userField = new JTextField();
-        JPasswordField passField = new JPasswordField();
-        Object[] inputs = {"Username:", userField, "Contraseña:", passField};
-
-        int res = JOptionPane.showConfirmDialog(this, inputs,
-                "Iniciar Sesión", JOptionPane.OK_CANCEL_OPTION);
-
-        if (res == JOptionPane.OK_OPTION) {
-            String user = userField.getText();
-            String pass = new String(passField.getPassword());
-            Usuario u = sistema.autenticar(user, pass);
-            if (u != null) {
-                JOptionPane.showMessageDialog(this,
-                        "Bienvenido, " + u.getNombre());
-                abrirVentanaPorRol(u);
-                dispose();
-            } else {
-                JOptionPane.showMessageDialog(this,
-                        "Credenciales incorrectas.",
-                        "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-    }
-
-    // ============================================================
-    //                     ABRIR VENTANA SEGÚN ROL
-    // ============================================================
+    /** ================================
+     *      ABRIR VENTANA SEGÚN ROL
+     * ================================ */
     private void abrirVentanaPorRol(Usuario u) {
-        if (u == null) return;
-
         if (u instanceof Administrador) {
-            VentanaAdministrador va =
-                    new VentanaAdministrador(sistema, (Administrador) u);
-            va.setVisible(true);
+            new VentanaAdministrador(sistema, (Administrador) u).setVisible(true);
         } else if (u instanceof Cliente) {
-            VentanaCliente vc =
-                    new VentanaCliente(sistema, (Cliente) u);
-            vc.setVisible(true);
+            new VentanaCliente(sistema, (Cliente) u).setVisible(true);
         } else {
-            JOptionPane.showMessageDialog(this, "Rol no soportado.");
+            JOptionPane.showMessageDialog(this, "Rol desconocido.");
         }
     }
 }

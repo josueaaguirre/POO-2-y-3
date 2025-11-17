@@ -5,135 +5,67 @@ import com.itextpdf.text.pdf.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
+import java.util.List;
 
-public class GeneradorReciboPDF {
+public class GeneradorReportePDF {
 
-    private static final String DIR = "recibos";
+    private static final String DIR = "reportes";
+    private static final String FILE = "ReporteMovimientos.pdf";
 
-    public static void generar(Recibo r) {
-        if (r == null) return;
+    public static void generarReporteGeneral(List<Recibo> lista) {
+        if (lista == null || lista.isEmpty()) return;
 
         try {
             File dir = new File(DIR);
             if (!dir.exists()) dir.mkdirs();
 
-            String safeName = r.getClienteUsuario().replaceAll("[^a-zA-Z0-9_-]", "_");
-            String fileName = DIR + File.separator + "recibo_" + safeName + "_" + r.getIdRecibo() + ".pdf";
-
-            // ---------------------
-            // DOCUMENTO
-            // ---------------------
             Document doc = new Document(PageSize.A4, 40, 40, 40, 40);
-            PdfWriter.getInstance(doc, new FileOutputStream(fileName));
+            PdfWriter.getInstance(doc, new FileOutputStream(DIR + File.separator + FILE));
             doc.open();
 
-            // ---------------------
-            // FUENTES
-            // ---------------------
-            Font tituloFont = new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD);
-            Font labelFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
-            Font normalFont = new Font(Font.FontFamily.HELVETICA, 12);
+            Font tituloFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD);
+            Font headerFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
+            Font normalFont = new Font(Font.FontFamily.HELVETICA, 11);
 
-            // ---------------------
-            // LOGO (ESTILO A - Azul Cliente)
-            // Generamos un logo azul con una figura simple (sin imagen externa)
-            // ---------------------
-            PdfPTable encabezado = new PdfPTable(2);
-            encabezado.setWidthPercentage(100);
-            encabezado.setWidths(new float[]{1, 4});
+            Paragraph titulo = new Paragraph("REPORTE GLOBAL DE MOVIMIENTOS\n\n", tituloFont);
+            titulo.setAlignment(Element.ALIGN_CENTER);
+            doc.add(titulo);
 
-            // Cuadrado azul simulando el logo
-            PdfPCell logoCell = new PdfPCell();
-            logoCell.setBorder(Rectangle.NO_BORDER);
-            logoCell.setPadding(8);
-
-            PdfContentByte canvas = PdfWriter.getInstance(doc, new FileOutputStream(fileName)).getDirectContent();
-            logoCell.addElement(getLogoGenerado(0x3366FF));  // azul
-
-            encabezado.addCell(logoCell);
-
-            PdfPCell titulo = new PdfPCell(new Phrase("RECIBO DE OPERACIÓN", tituloFont));
-            titulo.setHorizontalAlignment(Element.ALIGN_LEFT);
-            titulo.setVerticalAlignment(Element.ALIGN_MIDDLE);
-            titulo.setBorder(Rectangle.NO_BORDER);
-            encabezado.addCell(titulo);
-
-            doc.add(encabezado);
-
-            doc.add(new Paragraph("\n")); // espacio
-
-            // ---------------------
-            // Línea divisor
-            // ---------------------
-            LineSeparator ls = new LineSeparator();
-            doc.add(ls);
-            doc.add(new Paragraph("\n"));
-
-            // ---------------------
-            // TABLA DE DATOS
-            // ---------------------
-            PdfPTable tabla = new PdfPTable(2);
+            PdfPTable tabla = new PdfPTable(7);
             tabla.setWidthPercentage(100);
-            tabla.setSpacingBefore(10);
-            tabla.setWidths(new float[]{2, 5});
+            tabla.setWidths(new float[]{2, 3, 3, 3, 3, 2, 3});
 
-            agregarFila(tabla, "ID de Recibo:", r.getIdRecibo(), labelFont, normalFont);
-            agregarFila(tabla, "Fecha:", r.getFechaFormateada(), labelFont, normalFont);
-            agregarFila(tabla, "Cliente (usuario):", r.getClienteUsuario(), labelFont, normalFont);
-            agregarFila(tabla, "Número de Cuenta:", r.getNumeroCuenta(), labelFont, normalFont);
-            agregarFila(tabla, "Administrador:", r.getAdministradorUsuario() != null ? r.getAdministradorUsuario() : "N/A", labelFont, normalFont);
-            agregarFila(tabla, "Tipo de Movimiento:", r.getTipoMovimiento(), labelFont, normalFont);
-            agregarFila(tabla, "Monto:", String.format("%.2f", r.getMonto()), labelFont, normalFont);
-            agregarFila(tabla, "Descripción:", r.getDescripcion(), labelFont, normalFont);
+            agregarCelda(tabla, "ID", headerFont);
+            agregarCelda(tabla, "Fecha", headerFont);
+            agregarCelda(tabla, "Cliente", headerFont);
+            agregarCelda(tabla, "Cuenta", headerFont);
+            agregarCelda(tabla, "Tipo", headerFont);
+            agregarCelda(tabla, "Monto", headerFont);
+            agregarCelda(tabla, "Descripción", headerFont);
+
+            for (Recibo r : lista) {
+                agregarCelda(tabla, r.getIdRecibo(), normalFont);
+                agregarCelda(tabla, r.getFechaFormateada(), normalFont);
+                agregarCelda(tabla, r.getClienteUsuario(), normalFont);
+                agregarCelda(tabla, r.getNumeroCuenta(), normalFont);
+                agregarCelda(tabla, r.getTipoMovimiento(), normalFont);
+                agregarCelda(tabla, String.format("%.2f", r.getMonto()), normalFont);
+                agregarCelda(tabla, r.getDescripcion(), normalFont);
+            }
 
             doc.add(tabla);
-
-            doc.add(new Paragraph("\n\n"));
-            doc.add(ls);
-
-            doc.add(new Paragraph("\nFirma del Cliente ____________________________", normalFont));
-            doc.add(new Paragraph("\nFirma del Administrador ______________________", normalFont));
-
             doc.close();
-            System.out.println("PDF generado: " + fileName);
+
+            System.out.println("PDF GLOBAL generado en /reportes/" + FILE);
 
         } catch (Exception ex) {
-            System.err.println("Error generando PDF: " + ex.getMessage());
+            ex.printStackTrace();
         }
     }
 
-    // --------------------------
-    // Crea un pequeño logo rectangular de color
-    // --------------------------
-    private static PdfPTable getLogoGenerado(int colorHex) {
-        PdfPTable t = new PdfPTable(1);
-        t.setWidthPercentage(100);
-
-        PdfPCell c = new PdfPCell();
-        c.setFixedHeight(40);
-        c.setBackgroundColor(new BaseColor(colorHex));
-        c.setBorder(Rectangle.NO_BORDER);
-
-        // Texto blanco centrado dentro del logo
-        Paragraph p = new Paragraph("CLIENTE", new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.WHITE));
-        p.setAlignment(Element.ALIGN_CENTER);
-        c.addElement(p);
-
-        t.addCell(c);
-        return t;
-    }
-
-    // --------------------------
-    // Añade una fila clave-valor a la tabla
-    // --------------------------
-    private static void agregarFila(PdfPTable tabla, String etiqueta, String valor, Font labelFont, Font normalFont) {
-        PdfPCell c1 = new PdfPCell(new Phrase(etiqueta, labelFont));
-        c1.setBorder(Rectangle.NO_BORDER);
-        tabla.addCell(c1);
-
-        PdfPCell c2 = new PdfPCell(new Phrase(valor, normalFont));
-        c2.setBorder(Rectangle.NO_BORDER);
-        tabla.addCell(c2);
+    private static void agregarCelda(PdfPTable tabla, String texto, Font f) {
+        PdfPCell c = new PdfPCell(new Phrase(texto != null ? texto : "", f));
+        c.setHorizontalAlignment(Element.ALIGN_LEFT);
+        tabla.addCell(c);
     }
 }
