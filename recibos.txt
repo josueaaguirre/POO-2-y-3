@@ -1,1 +1,6 @@
-1403023a-275d-45d3-915d-1c8ccd75369a;2025-11-29T19:02:23.461932600;Resumen;0.0;Resumen de cuenta;clau;2d6208cc;
+965015d4-001e-4813-9538-d1b2bfe5f420;2025-11-30T15:32:19.368581;Depósito;1.0E14;Depósito realizado;clau;2d6208cc;
+e2624dec-1bd8-4452-ad6d-f619378a8519;2025-11-30T15:32:33.884466;Resumen;1.0E14;Resumen de cuenta;clau;2d6208cc;
+91b8a23a-af5c-4863-86f1-8ebc5f5a7de0;2025-11-30T15:34:27.201219500;Depósito;1.0E13;Depósito realizado;josue2;635aee91;
+2af026ac-ab6d-4066-9a93-d61e9a005620;2025-11-30T15:35:02.270125700;TransferenciaSalida;5000000.0;Transferencia enviada;josue2;635aee91;
+b97d16ab-2d24-4673-8942-1d481569620f;2025-11-30T15:35:02.271127800;TransferenciaEntrada;5000000.0;Transferencia recibida;clau;2d6208cc;
+bae42971-1cf9-48a8-ab9d-81d2f4d99230;2025-11-30T15:35:22.975545200;Resumen;9.999995E12;Resumen de cuenta;josue2;635aee91;

@@ -1,9 +1,25 @@
 package com.mycompany.sistemadeautenticacion;
 
-import javax.swing.*;
-import java.awt.*;
-import java.util.UUID;
+// ...existing code...
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Insets;
 import java.time.LocalDateTime;
+import java.util.UUID;
+
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 public class VentanaCliente extends JFrame {
     private final SistemaAutenticacion sistema;
@@ -43,27 +59,41 @@ public class VentanaCliente extends JFrame {
         lista.setForeground(Color.WHITE);
         lista.setSelectionBackground(new Color(255, 102, 102));
         lista.setSelectionForeground(Color.WHITE);
+// ...existing code...
         JScrollPane sp = new JScrollPane(lista);
         sp.getViewport().setBackground(new Color(0, 170, 170));
         p.add(sp, BorderLayout.CENTER);
 
-        JPanel botones = new JPanel();
+        // Panel de botones: FlowLayout permite respetar preferredSize de cada botón
+        JPanel botones = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 8));
         botones.setBackground(new Color(0, 204, 204));
+        botones.setOpaque(true);
+        botones.setPreferredSize(new Dimension(0, 60)); // altura fija para el panel
 
-        JButton btnAbrir = new JButton("Abrir cuenta");
+        JButton btnAbrir = new JButton("Abrir Cuenta");
         JButton btnDepositar = new JButton("Depositar");
         JButton btnRetirar = new JButton("Retirar");
         JButton btnTransferir = new JButton("Transferir");
-        JButton btnRecibo = new JButton("Generar Recibo PDF");
-        JButton btnCerrar = new JButton("Cerrar sesión");
+        JButton btnRecibo = new JButton("Recibo");
+        JButton btnCerrar = new JButton("Cerrar");
 
+        // Tamaño y estilo más compactos
         for (JButton b : new JButton[]{btnAbrir, btnDepositar, btnRetirar, btnTransferir, btnRecibo, btnCerrar}) {
+            b.setPreferredSize(new Dimension(80, 30));          // ancho x alto del botón
+            b.setFont(b.getFont().deriveFont(12f));             // tamaño de texto más pequeño
+            b.setMargin(new Insets(2, 6, 2, 6));                // reducir padding interno
             b.setBackground(new Color(255, 102, 102));
             b.setForeground(Color.WHITE);
             b.setFocusPainted(false);
             b.setBorderPainted(false);
             botones.add(b);
         }
+
+        p.add(botones, BorderLayout.SOUTH);
+        add(p);
+        revalidate();
+        repaint();
+// ...existing code...
 
         // ============================================================
         // BOTÓN ABRIR CUENTA (sin cambios)

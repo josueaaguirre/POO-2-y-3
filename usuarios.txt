@@ -1,3 +1,4 @@
 josue|josue1|1234|ADMIN
 claudia|clau|1234|CLIENTE
 josue|josue|1234|ADMIN
+josue2|josue2|1234|CLIENTE
