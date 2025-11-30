@@ -4,14 +4,37 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class Recibo {
+
+    // 👉 MÉTODO QUE FALTABA (el que pide SistemaAutenticacion)
+    public static Recibo crear(String tipoMovimiento, double monto, String numeroCuenta, String clienteUsuario) {
+        String id = "R" + System.currentTimeMillis();
+        LocalDateTime fecha = LocalDateTime.now();
+        String descripcion = tipoMovimiento + " por " + monto;
+
+        return new Recibo(
+                id,
+                fecha,
+                tipoMovimiento,
+                monto,
+                descripcion,
+                clienteUsuario,
+                numeroCuenta,
+                "" // administrador se puede completar después si lo necesitas
+        );
+    }
+
+    static Recibo crearTransferencia(CuentaBancaria origen, CuentaBancaria destino, double monto, String nombreUsuario, SistemaAutenticacion sistema) {
+        throw new UnsupportedOperationException("Not supported yet."); 
+    }
+
     private String id;
     private LocalDateTime fecha;
     private String tipoMovimiento;
     private double monto;
     private String descripcion;
-    private String clienteUsuario; // username
+    private String clienteUsuario; 
     private String numeroCuenta;
-    private String administradorUsuario; // username
+    private String administradorUsuario; 
 
     public Recibo(String id, LocalDateTime fecha, String tipoMovimiento, double monto, String descripcion,
                   String clienteUsuario, String numeroCuenta, String administradorUsuario) {
@@ -45,9 +68,6 @@ public class Recibo {
         return String.format("Recibo %s | %s | %s | %.2f", id, getFechaFormateada(), tipoMovimiento, monto);
     }
 
-    /* ======================================================
-           🔥 MÉTODO FALTANTE PARA GUARDAR EN EL TXT
-       ====================================================== */
     public String toLinea() {
         return id + ";" +
                fecha.toString() + ";" +
@@ -59,23 +79,20 @@ public class Recibo {
                administradorUsuario;
     }
 
-    /* ======================================================
-           🔥 MÉTODO FALTANTE PARA CARGAR DESDE EL TXT
-       ====================================================== */
     public static Recibo desdeLinea(String linea) {
         try {
             String[] p = linea.split(";");
             if (p.length != 8) return null;
 
             return new Recibo(
-                p[0],                                    // id
-                LocalDateTime.parse(p[1]),               // fecha ISO
-                p[2],                                    // tipoMovimiento
-                Double.parseDouble(p[3]),                // monto
-                p[4],                                    // descripcion
-                p[5],                                    // clienteUsuario
-                p[6],                                    // numeroCuenta
-                p[7]                                     // administradorUsuario
+                p[0],
+                LocalDateTime.parse(p[1]),
+                p[2],
+                Double.parseDouble(p[3]),
+                p[4],
+                p[5],
+                p[6],
+                p[7]
             );
         } catch (Exception e) {
             return null;

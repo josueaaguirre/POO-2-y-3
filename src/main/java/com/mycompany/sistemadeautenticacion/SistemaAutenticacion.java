@@ -20,9 +20,8 @@ public class SistemaAutenticacion implements Serializable {
         cargarUsuariosDesdeTXT();
         cargarCuentas();
         cargarRecibos();
-
-        // ← LÍNEA CLAVE: sincroniza cuentas dentro de cada Cliente
         sincronizarCuentasConClientes();
+        restaurarCuentasEnClientes();
     }
 
     /* =======================
@@ -70,9 +69,7 @@ public class SistemaAutenticacion implements Serializable {
                         u.getRol().getNombre()
                 );
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     private void cargarUsuariosDesdeTXT() {
@@ -81,7 +78,6 @@ public class SistemaAutenticacion implements Serializable {
 
         try (BufferedReader br = new BufferedReader(new FileReader(f))) {
             String linea;
-
             while ((linea = br.readLine()) != null) {
                 String[] p = linea.split("\\|");
                 if (p.length != 4) continue;
@@ -91,20 +87,13 @@ public class SistemaAutenticacion implements Serializable {
                 String pass = p[2];
                 String rolT = p[3];
 
-                Usuario u;
-
-                if (rolT.equalsIgnoreCase("ADMIN")) {
-                    u = new Administrador(nombre, user, pass);
-                } else {
-                    u = new Cliente(nombre, user, pass);
-                }
+                Usuario u = rolT.equalsIgnoreCase("ADMIN")
+                        ? new Administrador(nombre, user, pass)
+                        : new Cliente(nombre, user, pass);
 
                 usuarios.put(user, u);
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     /* =======================
@@ -133,6 +122,14 @@ public class SistemaAutenticacion implements Serializable {
         return c;
     }
 
+    public String generarNumeroCuentaUnico() {
+        String num;
+        do {
+            num = String.valueOf(10000000 + new Random().nextInt(90000000));
+        } while (cuentas.containsKey(num));
+        return num;
+    }
+
     public CuentaBancaria getCuenta(String numeroCuenta) {
         return cuentas.get(numeroCuenta);
     }
@@ -147,35 +144,70 @@ public class SistemaAutenticacion implements Serializable {
         } catch (Exception e) { e.printStackTrace(); }
     }
 
+    /** 🔥 SOLO CAMBIO NECESARIO 🔥 **/
     @SuppressWarnings("unchecked")
     private void cargarCuentas() {
         File f = new File(ARCHIVO_CUENTAS);
         if (!f.exists()) return;
+
         try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(f))) {
+
             Map<String, CuentaBancaria> map = (Map<String, CuentaBancaria>) in.readObject();
             cuentas.clear();
             cuentas.putAll(map);
 
-            // ✔️ restaurar vínculo con el cliente (si ya viene en el objeto cuenta)
             for (CuentaBancaria c : cuentas.values()) {
+
                 if (c.getPropietario() != null) {
-                    c.getPropietario().agregarCuentaLocal(c);
+
+                    Usuario u = usuarios.get(c.getPropietario().getNombreUsuario());
+
+                    if (u instanceof Cliente) {
+                        Cliente cli = (Cliente) u;
+                        c.setPropietario(cli);
+                        cli.agregarCuentaLocal(c);
+                    }
                 }
             }
 
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /* =======================
-          SINCRONIZACIÓN REAL
+          SINCRONIZACIÓN
        ======================= */
-
-    // Método añadido: sincroniza las cuentas del mapa 'cuentas' con la lista interna de cada Cliente
     public void sincronizarCuentasConClientes() {
         for (CuentaBancaria c : cuentas.values()) {
-            Usuario u = c.getPropietario();
+            if (c.getPropietario() instanceof Cliente) {
+                Cliente cli = (Cliente) c.getPropietario();
+                cli.agregarCuentaLocal(c);
+            }
+        }
+    }
+
+    /* =======================
+          RESTAURAR EN CLIENTES
+       ======================= */
+    private void restaurarCuentasEnClientes() {
+
+        for (Usuario u : usuarios.values()) {
+
             if (u instanceof Cliente) {
-                ((Cliente) u).agregarCuentaLocal(c);
+                Cliente cli = (Cliente) u;
+
+                List<CuentaBancaria> propias = new ArrayList<>();
+
+                for (CuentaBancaria c : cuentas.values()) {
+                    if (c.getPropietario() == cli) {
+                        propias.add(c);
+                    }
+                }
+
+                for (CuentaBancaria c : propias) {
+                    cli.agregarCuentaLocal(c);
+                }
             }
         }
     }
@@ -201,22 +233,75 @@ public class SistemaAutenticacion implements Serializable {
     private void cargarRecibos() {
         File f = new File(ARCHIVO_RECIBOS);
         if (!f.exists()) return;
+
         try (BufferedReader br = new BufferedReader(new FileReader(f))) {
             String linea;
             while ((linea = br.readLine()) != null) {
-                try {
-                    Recibo r = Recibo.desdeLinea(linea);
-                    if (r != null) recibos.add(r);
-                } catch (Exception e) {}
+                Recibo r = Recibo.desdeLinea(linea);
+                if (r != null) recibos.add(r);
             }
         } catch (Exception e) { e.printStackTrace(); }
     }
 
     private void guardarRecibosToFile() {
         try (PrintWriter pw = new PrintWriter(new FileWriter(ARCHIVO_RECIBOS))) {
-            for (Recibo r : recibos) {
-                pw.println(r.toLinea());
-            }
+            for (Recibo r : recibos) pw.println(r.toLinea());
         } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    /* =======================
+          TRANSFERENCIAS
+       ======================= */
+
+    public boolean transferir(String desde, String hacia, double monto) {
+        CuentaBancaria c1 = cuentas.get(desde);
+        CuentaBancaria c2 = cuentas.get(hacia);
+
+        if (c1 == null || c2 == null) return false;
+        if (monto <= 0) return false;
+        if (c1.getSaldo() < monto) return false;
+
+        c1.retirar(monto);
+        c2.depositar(monto);
+
+        String prop1 = c1.getPropietario() != null ? c1.getPropietario().getNombreUsuario() : "";
+        String prop2 = c2.getPropietario() != null ? c2.getPropietario().getNombreUsuario() : "";
+
+        Recibo r1 = Recibo.crear("TRANSFERENCIA ENVIADA", monto, desde, prop1);
+        Recibo r2 = Recibo.crear("TRANSFERENCIA RECIBIDA", monto, hacia, prop2);
+
+        guardarRecibo(r1);
+        guardarRecibo(r2);
+
+        guardarCuentas();
+        return true;
+    }
+
+    /* =======================
+          PDF
+       ======================= */
+
+    public void generarPDFporCliente(Administrador admin) {
+        for (Usuario u : usuarios.values()) {
+            if (u instanceof Cliente) {
+                Cliente cli = (Cliente) u;
+                GeneradorReciboPDF.generarPDFCliente(cli);
+            }
+        }
+    }
+
+    public void generarPDFglobal() {
+        GeneradorReciboPDF.generarPDFGlobal(recibos);
+    }
+    
+/* =======================
+      OBTENER TODOS LOS RECIBOS
+   ======================= */
+public List<Recibo> getTodosLosRecibos() {
+    return new ArrayList<>(recibos);
+}
+
+    public CuentaBancaria buscarCuentaGlobal(String cuentaDestino) {
+        return cuentas.get(cuentaDestino);
     }
 }

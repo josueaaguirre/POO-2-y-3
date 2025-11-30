@@ -1,2 +1,3 @@
-josue1|josue1|1234|ADMIN
-josue|josue|1234|CLIENTE
+josue|josue1|1234|ADMIN
+claudia|clau|1234|CLIENTE
+josue|josue|1234|ADMIN

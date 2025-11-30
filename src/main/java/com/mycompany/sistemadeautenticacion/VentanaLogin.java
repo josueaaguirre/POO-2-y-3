@@ -22,9 +22,6 @@ public class VentanaLogin extends JFrame {
         initUI();
     }
 
-    /** ================================
-     *          INTERFAZ PRINCIPAL
-     * ================================ */
     private void initUI() {
 
         JPanel p = new JPanel();
@@ -45,10 +42,27 @@ public class VentanaLogin extends JFrame {
         btnLogin.addActionListener(e -> abrirVentanaLogin());
         p.add(btnLogin);
 
+        // ===========================================
+        // ✔ CORRECCIÓN: PDF GLOBAL
+        // ===========================================
+        JButton btnPDFGlobal = crearBoton("PDF Global", 180);
+        btnPDFGlobal.addActionListener(e -> {
+            try {
+                // ✔ Se envía la lista de recibos, NO el sistema
+                GeneradorReciboPDF.generarPDFGlobal(
+                        sistema.getTodosLosRecibos()
+                );
+                JOptionPane.showMessageDialog(this, "PDF global generado con éxito.");
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error generando PDF global: " + ex.getMessage());
+            }
+        });
+        p.add(btnPDFGlobal);
+        // ===========================================
+
         add(p);
     }
 
-    /** Botón estilizado */
     private JButton crearBoton(String texto, int y) {
         JButton b = new JButton(texto);
         b.setBounds(125, y, 200, 40);
@@ -60,9 +74,6 @@ public class VentanaLogin extends JFrame {
         return b;
     }
 
-    /** =====================================================
-     *         NUEVA VENTANA PROPIA DE REGISTRO
-     * ===================================================== */
     private void abrirVentanaRegistro() {
 
         JFrame r = new JFrame("Registrar Usuario");
@@ -88,7 +99,6 @@ public class VentanaLogin extends JFrame {
         rol.setBounds(150, 200, 250, 30);
 
         cargarImagenUsuario(rol, img);
-
         rol.addActionListener(e -> cargarImagenUsuario(rol, img));
 
         panel.add(label("Nombre real", 150, 0));
@@ -148,9 +158,6 @@ public class VentanaLogin extends JFrame {
         r.setVisible(true);
     }
 
-    /** =====================================================
-     *         NUEVA VENTANA PROPIA DE LOGIN
-     * ===================================================== */
     private void abrirVentanaLogin() {
 
         JFrame r = new JFrame("Iniciar Sesión");
@@ -199,21 +206,18 @@ public class VentanaLogin extends JFrame {
         r.setVisible(true);
     }
 
-    /** Etiquetas estándar */
     private JLabel label(String t, int x, int y) {
         JLabel l = new JLabel(t);
         l.setBounds(x, y, 200, 20);
         return l;
     }
 
-    /** Campos estándar */
     private JTextField crearCampo(int x, int y) {
         JTextField t = new JTextField();
         t.setBounds(x, y, 250, 30);
         return t;
     }
 
-    /** Botones del formulario */
     private JButton crearBotonFormulario(String txt, int x, int y) {
         JButton b = new JButton(txt);
         b.setBounds(x, y, 200, 35);
@@ -225,7 +229,6 @@ public class VentanaLogin extends JFrame {
         return b;
     }
 
-    /** Cambia la imagen según rol */
     private void cargarImagenUsuario(JComboBox<String> rol, JLabel img) {
         try {
             String archivo = rol.getSelectedItem().equals("CLIENTE")
@@ -240,9 +243,6 @@ public class VentanaLogin extends JFrame {
         }
     }
 
-    /** ================================
-     *      ABRIR VENTANA SEGÚN ROL
-     * ================================ */
     private void abrirVentanaPorRol(Usuario u) {
         if (u instanceof Administrador) {
             new VentanaAdministrador(sistema, (Administrador) u).setVisible(true);

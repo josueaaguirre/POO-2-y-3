@@ -24,46 +24,63 @@ public class VentanaAdministrador extends JFrame {
 
     private void initUI() {
         JPanel p = new JPanel(new BorderLayout());
-        p.setBackground(new Color(0, 204, 204)); // solo cambio: fondo aqua
+        p.setBackground(new Color(0, 204, 204));
+
         JLabel header = new JLabel("Panel Administrador - " + admin.getNombre());
         header.setForeground(Color.WHITE);
-        header.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
+        header.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         p.add(header, BorderLayout.NORTH);
 
+        // LISTA DE USUARIOS
         JList<String> lista = new JList<>(usuariosModel);
-        lista.setBackground(new Color(28,28,28)); // mantengo el fondo de lista que ya tenías
+        lista.setBackground(new Color(28, 28, 28));
         lista.setForeground(Color.WHITE);
         p.add(new JScrollPane(lista), BorderLayout.CENTER);
 
-        JPanel botones = new JPanel();
-        botones.setBackground(new Color(0, 204, 204)); // panel botones con mismo fondo aqua
-        JButton btnCrearCuenta = new JButton("Crear cuenta para cliente");
+        // PANEL INFERIOR DE BOTONES (sin WrapLayout)
+        JPanel botones = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        botones.setBackground(new Color(0, 204, 204));
+
+        JButton btnCrearCuenta = new JButton("Crear cuenta");
         JButton btnRefrescar = new JButton("Refrescar");
+        JButton btnGenerarPDF = new JButton("PDF Clientes");
         JButton btnCerrar = new JButton("Cerrar sesión");
-        for (JButton b : new JButton[]{btnCrearCuenta, btnRefrescar, btnCerrar}) {
-            b.setBackground(new Color(255, 102, 102)); // solo cambio: boton rojo suave
+
+        // Botones más pequeños
+        for (JButton b : new JButton[]{btnCrearCuenta, btnRefrescar, btnGenerarPDF, btnCerrar}) {
+            b.setPreferredSize(new Dimension(130, 30)); // más pequeños
+            b.setBackground(new Color(255, 102, 102));
             b.setForeground(Color.WHITE);
             b.setFocusPainted(false);
             botones.add(b);
         }
 
+        // ACCIONES
         btnCrearCuenta.addActionListener(e -> {
             String username = JOptionPane.showInputDialog(this, "Username del cliente:");
             String tipo = JOptionPane.showInputDialog(this, "Tipo cuenta (Ahorros):", "Ahorros");
             if (username != null && tipo != null) {
                 CuentaBancaria c = sistema.crearCuenta(tipo, username);
                 if (c != null) JOptionPane.showMessageDialog(this, "Cuenta creada: " + c.getNumeroCuenta());
-                else JOptionPane.showMessageDialog(this, "No se pudo crear la cuenta (usuario no existe o no es cliente).");
+                else JOptionPane.showMessageDialog(this, "Error creando la cuenta.");
                 cargarUsuarios();
             }
         });
 
         btnRefrescar.addActionListener(e -> cargarUsuarios());
 
+        btnGenerarPDF.addActionListener(e -> {
+            try {
+                admin.generarRecibosDeClientes(sistema);
+                JOptionPane.showMessageDialog(this, "PDFs generados.");
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+            }
+        });
+
         btnCerrar.addActionListener(e -> {
             dispose();
-            VentanaLogin v = new VentanaLogin(sistema);
-            v.setVisible(true);
+            new VentanaLogin(sistema).setVisible(true);
         });
 
         p.add(botones, BorderLayout.SOUTH);
@@ -72,7 +89,7 @@ public class VentanaAdministrador extends JFrame {
 
     private void cargarUsuarios() {
         usuariosModel.clear();
-        java.util.List<Usuario> lista = sistema.listarUsuarios();
+        List<Usuario> lista = sistema.listarUsuarios();
         for (Usuario u : lista) {
             usuariosModel.addElement(u.toString());
         }

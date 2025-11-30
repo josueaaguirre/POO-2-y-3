@@ -9,7 +9,7 @@ public class CuentaBancaria implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private String numeroCuenta;
+    private final String numeroCuenta; // 🔒 ahora marcado como final para que JAMÁS cambie
     private double saldo;
     private String tipo;
     private Cliente propietario;
@@ -36,6 +36,11 @@ public class CuentaBancaria implements Serializable {
         return numeroCuenta + " | " + tipo + " | Saldo: " + saldo;
     }
 
+    // 👉 MÉTODO NUEVO QUE NECESITA GeneradorReciboPDF
+    public List<Recibo> getHistorial() {
+        return getRecibos();
+    }
+
     // operaciones
     public void depositar(double monto) {
         if (monto <= 0) throw new IllegalArgumentException("Monto debe ser > 0");
@@ -51,6 +56,19 @@ public class CuentaBancaria implements Serializable {
         return false;
     }
 
+    // ---------------------------
+    // 👉 NUEVO: TRANSFERENCIAS
+    // ---------------------------
+    public boolean transferirA(CuentaBancaria destino, double monto) {
+        if (destino == null) return false;
+        if (monto <= 0) return false;
+        if (this.saldo < monto) return false;
+
+        this.saldo -= monto;
+        destino.saldo += monto;
+        return true;
+    }
+
     public void agregarRecibo(Recibo r) {
         if (r != null) recibos.add(r);
     }
@@ -62,11 +80,15 @@ public class CuentaBancaria implements Serializable {
         return String.format("%s | %s | Saldo: %.2f", numeroCuenta, tipo, saldo);
     }
 
-    public String toLinea() {
-        String prop = propietario != null ? propietario.getNombreUsuario() : "";
-        String admin = administradorAsignado != null ? administradorAsignado.getNombreUsuario() : "";
-        return numeroCuenta + ";" + tipo + ";" + saldo + ";" + prop + ";" + admin;
-    }
+  public String toLinea() {
+    String prop = propietario != null ? propietario.getNombreUsuario() : "";
+    String admin = administradorAsignado != null ? administradorAsignado.getNombreUsuario() : "";
+    return numeroCuenta + ";" + tipo + ";" + saldo + ";" + prop + ";" + admin;
+}
+public void setPropietario(Cliente propietario) {
+    this.propietario = propietario;
+}
+
 
     public static CuentaBancaria desdeLinea(String linea, SistemaAutenticacion sistema) {
         try {
