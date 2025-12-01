@@ -159,7 +159,7 @@ public class SistemaAutenticacion implements Serializable {
         } catch (Exception e) { e.printStackTrace(); }
     }
 
-    /** 🔥 SOLO CAMBIO NECESARIO 🔥 **/
+   
     @SuppressWarnings("unchecked")
     private void cargarCuentas() {
         File f = new File(ARCHIVO_CUENTAS);
